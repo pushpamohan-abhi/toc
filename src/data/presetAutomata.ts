@@ -450,5 +450,236 @@ export const PRESET_AUTOMATA: AutomatonData[] = [
       { id: 't6_1', from: 'q6', to: 'q6', symbol: '1' }
     ],
     testStrings: ['101', '010', '00010100', '111', '0000']
+  },
+  {
+    id: 'even_a_odd_b',
+    name: 'DFA: Even no. of a\'s and Odd no. of b\'s',
+    description: 'Product automaton tracking parity: Even number of a\'s and Odd number of b\'s (PDF Page 15, Ex 21).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0 (e_a, e_b)', x: 200, y: 140, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (o_a, e_b)', x: 480, y: 140, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (e_a, o_b)', x: 200, y: 320, isStart: false, isFinal: true },
+      { id: 'q3', label: 'q3 (o_a, o_b)', x: 480, y: 320, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't01', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't02', from: 'q0', to: 'q2', symbol: 'b' },
+      { id: 't10', from: 'q1', to: 'q0', symbol: 'a' },
+      { id: 't13', from: 'q1', to: 'q3', symbol: 'b' },
+      { id: 't20', from: 'q2', to: 'q0', symbol: 'b' },
+      { id: 't23', from: 'q2', to: 'q3', symbol: 'a' },
+      { id: 't31', from: 'q3', to: 'q1', symbol: 'b' },
+      { id: 't32', from: 'q3', to: 'q2', symbol: 'a' }
+    ],
+    testStrings: ['b', 'aab', 'aabbb', 'ab', 'aa']
+  },
+  {
+    id: 'starts_with_00',
+    name: 'DFA: Starts with "00"',
+    description: 'Accepts all binary strings that begin with the prefix "00" (PDF Page 39, Ex 2).',
+    type: 'DFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'q0', label: 'q0', x: 120, y: 180, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1', x: 320, y: 180, isStart: false, isFinal: false },
+      { id: 'qf', label: 'qf', x: 520, y: 180, isStart: false, isFinal: true },
+      { id: 'qd', label: 'Dead', x: 320, y: 340, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't1', from: 'q0', to: 'q1', symbol: '0' },
+      { id: 't2', from: 'q0', to: 'qd', symbol: '1' },
+      { id: 't3', from: 'q1', to: 'qf', symbol: '0' },
+      { id: 't4', from: 'q1', to: 'qd', symbol: '1' },
+      { id: 't5', from: 'qf', to: 'qf', symbol: '0' },
+      { id: 't6', from: 'qf', to: 'qf', symbol: '1' },
+      { id: 't7', from: 'qd', to: 'qd', symbol: '0' },
+      { id: 't8', from: 'qd', to: 'qd', symbol: '1' }
+    ],
+    testStrings: ['00', '00101', '0000', '010', '100']
+  },
+  {
+    id: 'starts_aa_or_bb',
+    name: 'DFA: Starts with "aa" or "bb"',
+    description: 'Accepts strings over {a,b} starting with either "aa" or "bb" (PDF Page 39, Ex 3).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0', x: 100, y: 220, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (a)', x: 260, y: 120, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (b)', x: 260, y: 320, isStart: false, isFinal: false },
+      { id: 'qf', label: 'qf (Accept)', x: 480, y: 220, isStart: false, isFinal: true },
+      { id: 'qd', label: 'Dead', x: 260, y: 220, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_a', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't0_b', from: 'q0', to: 'q2', symbol: 'b' },
+      { id: 't1_a', from: 'q1', to: 'qf', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'qd', symbol: 'b' },
+      { id: 't2_b', from: 'q2', to: 'qf', symbol: 'b' },
+      { id: 't2_a', from: 'q2', to: 'qd', symbol: 'a' },
+      { id: 'tf_a', from: 'qf', to: 'qf', symbol: 'a' },
+      { id: 'tf_b', from: 'qf', to: 'qf', symbol: 'b' },
+      { id: 'td_a', from: 'qd', to: 'qd', symbol: 'a' },
+      { id: 'td_b', from: 'qd', to: 'qd', symbol: 'b' }
+    ],
+    testStrings: ['aab', 'bba', 'aaba', 'ab', 'ba']
+  },
+  {
+    id: 'ends_with_abb',
+    name: 'DFA: Ends with "abb"',
+    description: 'Accepts all strings over {a,b} ending with the suffix "abb" (PDF Page 41, Ex 2).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0', x: 100, y: 200, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (a)', x: 280, y: 200, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (ab)', x: 460, y: 200, isStart: false, isFinal: false },
+      { id: 'q3', label: 'q3 (abb)', x: 640, y: 200, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 't0_a', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't0_b', from: 'q0', to: 'q0', symbol: 'b' },
+      { id: 't1_a', from: 'q1', to: 'q1', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'q2', symbol: 'b' },
+      { id: 't2_a', from: 'q2', to: 'q1', symbol: 'a' },
+      { id: 't2_b', from: 'q2', to: 'q3', symbol: 'b' },
+      { id: 't3_a', from: 'q3', to: 'q1', symbol: 'a' },
+      { id: 't3_b', from: 'q3', to: 'q0', symbol: 'b' }
+    ],
+    testStrings: ['abb', 'aabb', 'babb', 'ab', 'abba']
+  },
+  {
+    id: 'except_contains_aab',
+    name: 'DFA: EXCEPT those containing "aab"',
+    description: 'Complement automaton accepting all strings over {a,b} EXCEPT those containing "aab" (PDF Page 12, Ex 17).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0', x: 120, y: 200, isStart: true, isFinal: true },
+      { id: 'q1', label: 'q1 (a)', x: 300, y: 200, isStart: false, isFinal: true },
+      { id: 'q2', label: 'q2 (aa)', x: 480, y: 200, isStart: false, isFinal: true },
+      { id: 'q3', label: 'q3 (aab Trap)', x: 660, y: 200, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_b', from: 'q0', to: 'q0', symbol: 'b' },
+      { id: 't0_a', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'q0', symbol: 'b' },
+      { id: 't1_a', from: 'q1', to: 'q2', symbol: 'a' },
+      { id: 't2_a', from: 'q2', to: 'q2', symbol: 'a' },
+      { id: 't2_b', from: 'q2', to: 'q3', symbol: 'b' },
+      { id: 't3_a', from: 'q3', to: 'q3', symbol: 'a' },
+      { id: 't3_b', from: 'q3', to: 'q3', symbol: 'b' }
+    ],
+    testStrings: ['aba', 'bbb', 'aaaa', 'aab', 'baab']
+  },
+  {
+    id: 'divisible_by_2',
+    name: 'DFA: Binary Divisible by 2',
+    description: 'Accepts binary numbers ending in 0 (divisible by 2) (PDF Page 43, Ex 1).',
+    type: 'DFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'q0', label: 'r=0 (Even)', x: 220, y: 200, isStart: true, isFinal: true },
+      { id: 'q1', label: 'r=1 (Odd)', x: 480, y: 200, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_0', from: 'q0', to: 'q0', symbol: '0' },
+      { id: 't0_1', from: 'q0', to: 'q1', symbol: '1' },
+      { id: 't1_0', from: 'q1', to: 'q0', symbol: '0' },
+      { id: 't1_1', from: 'q1', to: 'q1', symbol: '1' }
+    ],
+    testStrings: ['0', '10', '110', '1110', '101', '1']
+  },
+  {
+    id: 'at_most_two_consecutive_bs',
+    name: 'DFA: At Most Two Consecutive b\'s',
+    description: 'Accepts strings over {a,b} that do NOT contain three or more adjacent "b"s ("bbb") (PDF Page 44, Ex 2.14).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0 (0 b)', x: 120, y: 200, isStart: true, isFinal: true },
+      { id: 'q1', label: 'q1 (1 b)', x: 300, y: 200, isStart: false, isFinal: true },
+      { id: 'q2', label: 'q2 (2 b)', x: 480, y: 200, isStart: false, isFinal: true },
+      { id: 'q3', label: 'q3 (Dead bbb)', x: 660, y: 200, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_a', from: 'q0', to: 'q0', symbol: 'a' },
+      { id: 't0_b', from: 'q0', to: 'q1', symbol: 'b' },
+      { id: 't1_a', from: 'q1', to: 'q0', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'q2', symbol: 'b' },
+      { id: 't2_a', from: 'q2', to: 'q0', symbol: 'a' },
+      { id: 't2_b', from: 'q2', to: 'q3', symbol: 'b' },
+      { id: 't3_a', from: 'q3', to: 'q3', symbol: 'a' },
+      { id: 't3_b', from: 'q3', to: 'q3', symbol: 'b' }
+    ],
+    testStrings: ['abb', 'abbabb', 'ab', 'bbb', 'abbb']
+  },
+  {
+    id: 'length_mod_3_eq_0',
+    name: 'DFA: Length |w| mod 3 = 0',
+    description: 'Accepts strings whose total length is a multiple of 3 (PDF Page 44, Ex 2.15).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0 (len mod 3 = 0)', x: 150, y: 200, isStart: true, isFinal: true },
+      { id: 'q1', label: 'q1 (len mod 3 = 1)', x: 380, y: 120, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (len mod 3 = 2)', x: 380, y: 280, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_a', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't0_b', from: 'q0', to: 'q1', symbol: 'b' },
+      { id: 't1_a', from: 'q1', to: 'q2', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'q2', symbol: 'b' },
+      { id: 't2_a', from: 'q2', to: 'q0', symbol: 'a' },
+      { id: 't2_b', from: 'q2', to: 'q0', symbol: 'b' }
+    ],
+    testStrings: ['aaa', 'aba', 'a', 'ab', 'aaaaaa']
+  },
+  {
+    id: 'nfa_ends_ab_or_ba',
+    name: 'NFA: Strings ending in "ab" or "ba"',
+    description: 'Nondeterministic automaton branching to detect either "ab" or "ba" suffix (PDF Page 18, Ex 2).',
+    type: 'NFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0', x: 120, y: 200, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (a)', x: 300, y: 120, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (ab)', x: 480, y: 120, isStart: false, isFinal: true },
+      { id: 'q3', label: 'q3 (b)', x: 300, y: 280, isStart: false, isFinal: false },
+      { id: 'q4', label: 'q4 (ba)', x: 480, y: 280, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 't0_a', from: 'q0', to: 'q0', symbol: 'a' },
+      { id: 't0_b', from: 'q0', to: 'q0', symbol: 'b' },
+      { id: 't0_ga', from: 'q0', to: 'q1', symbol: 'a' },
+      { id: 't1_b', from: 'q1', to: 'q2', symbol: 'b' },
+      { id: 't0_gb', from: 'q0', to: 'q3', symbol: 'b' },
+      { id: 't3_a', from: 'q3', to: 'q4', symbol: 'a' }
+    ],
+    testStrings: ['ab', 'ba', 'aabab', 'bbba', 'aa']
+  },
+  {
+    id: 'enfa_ends0_or_only1s',
+    name: 'ε-NFA: Ends with "0" OR Contains only "1"s',
+    description: 'Spontaneous branching ε-NFA accepting strings ending in 0 or composed solely of 1s (PDF Page 27, Ex 2).',
+    type: 'ENFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'q0', label: 'q0 (Start)', x: 100, y: 200, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (1s Branch)', x: 280, y: 120, isStart: false, isFinal: true },
+      { id: 'q2', label: 'q2 (0s Branch)', x: 280, y: 280, isStart: false, isFinal: false },
+      { id: 'q3', label: 'q3 (Ends 0)', x: 480, y: 280, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 't0_eps1', from: 'q0', to: 'q1', symbol: 'ε' },
+      { id: 't0_eps2', from: 'q0', to: 'q2', symbol: 'ε' },
+      { id: 't1_1', from: 'q1', to: 'q1', symbol: '1' },
+      { id: 't2_0', from: 'q2', to: 'q2', symbol: '0' },
+      { id: 't2_1', from: 'q2', to: 'q2', symbol: '1' },
+      { id: 't2_30', from: 'q2', to: 'q3', symbol: '0' }
+    ],
+    testStrings: ['111', '1010', '00', '101', 'ε']
   }
 ];

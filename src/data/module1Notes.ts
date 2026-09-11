@@ -416,5 +416,57 @@ export const MODULE_1_QUIZ: QuizQuestion[] = [
     answerIndex: 1,
     explanation: 'Reversing a concatenated string (xy) reverses the order of the constituent strings: (xy)^R = y^R x^R.',
     topic: 'String Operations'
+  },
+  {
+    id: 'q9',
+    question: 'What pattern does the UNIX regular expression [A-Z][a-z]* [A-Z][A-Z] match?',
+    options: [
+      'A capitalized word followed by a space and two capital letters (e.g. Ithaca NY)',
+      'Any sequence of numbers followed by letters',
+      'All lowercase words with no punctuation',
+      'Two spaces followed by a capitalized string'
+    ],
+    answerIndex: 0,
+    explanation: 'As given in Section 1.5 of the textbook, [A-Z][a-z]* represents a capitalized word, followed by a space and two capital letters [A-Z][A-Z] representing state abbreviations.',
+    topic: 'Regular Expressions'
+  },
+  {
+    id: 'q10',
+    question: 'What is the key difference between Decidability and Intractability in Automata Theory?',
+    options: [
+      'Decidability studies what a computer can solve at all, while Intractability studies what can be solved efficiently (in polynomial time)',
+      'Decidability applies only to DFAs, while Intractability applies only to NFAs',
+      'Decidability deals with hardware, while Intractability deals with compilers',
+      'There is no difference between them'
+    ],
+    answerIndex: 0,
+    explanation: 'Decidability asks "What can a computer do at all?", whereas Intractability asks "What can a computer do efficiently in polynomial time?"',
+    topic: 'Complexity'
+  },
+  {
+    id: 'q11',
+    question: 'How do you construct a DFA that accepts the COMPLEMENT of the language accepted by a given DFA?',
+    options: [
+      'Reverse all transition arrows',
+      'Swap the start state with a final state',
+      'Keep the same states and transitions, but invert final states (turn non-final states into final, and final into non-final)',
+      'Add ε-transitions between all states'
+    ],
+    answerIndex: 2,
+    explanation: 'To construct a complement DFA L(A)^c, keep Q, Σ, δ, q0 identical and replace F with F_c = Q \\ F (invert all final and non-final states).',
+    topic: 'DFA Complement'
+  },
+  {
+    id: 'q12',
+    question: 'What is the signature of the transition function δ for an ε-NFA?',
+    options: [
+      'δ: Q × Σ → Q',
+      'δ: Q × Σ → 𝒫(Q)',
+      'δ: Q × (Σ ∪ {ε}) → 𝒫(Q)',
+      'δ: Q × Q → Σ'
+    ],
+    answerIndex: 2,
+    explanation: 'An ε-NFA transition function takes a state in Q and an input symbol from Σ OR ε, and maps it to a subset of states 𝒫(Q).',
+    topic: 'ε-NFA Formalism'
   }
 ];
