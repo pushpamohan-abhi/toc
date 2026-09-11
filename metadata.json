@@ -1,0 +1,6 @@
+{
+  "name": "Automata Theory Module 1 & DFA/NFA Simulator",
+  "description": "Interactive Module 1 slides, DFA/NFA/ε-NFA step-by-step simulator, subset construction converter, custom builder, and quiz.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
