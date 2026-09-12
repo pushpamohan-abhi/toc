@@ -1,20 +1,64 @@
 import React, { useState } from 'react';
 import { QuizQuestion } from '../types';
-import { MODULE_1_QUIZ } from '../data/module1Notes';
-import { GraduationCap, CheckCircle2, XCircle, Bot, Send, HelpCircle, Sparkles, RefreshCw } from 'lucide-react';
+import { ALL_MODULE_QUIZZES } from '../data/quizQuestions';
+import { signInWithGoogle, createGoogleFormQuiz, getCachedToken } from '../lib/googleFormsService';
+import { GraduationCap, CheckCircle2, XCircle, Bot, Send, HelpCircle, Sparkles, RefreshCw, FileText, ExternalLink, Copy } from 'lucide-react';
 
 interface AiTutorQuizProps {
   isProjectorMode?: boolean;
 }
 
 export const AiTutorQuiz: React.FC<AiTutorQuizProps> = ({ isProjectorMode = false }) => {
+  const [activeQuizModule, setActiveQuizModule] = useState<number>(1);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
   const [showResults, setShowResults] = useState(false);
+
+  // Google Forms states
+  const [isExportingForms, setIsExportingForms] = useState(false);
+  const [googleFormUrl, setGoogleFormUrl] = useState<string | null>(null);
+  const [formsError, setFormsError] = useState<string | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // AI Assistant states
   const [userQuery, setUserQuery] = useState('');
   const [aiResponse, setAiResponse] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+
+  const moduleNames: Record<number, string> = {
+    1: 'Finite Automata & Subset Construction',
+    2: 'Regular Expressions & DFA Minimization',
+    3: 'CFG, Parse Trees & Normal Forms',
+    4: 'Pushdown Automata (PDA)',
+    5: 'Turing Machines & Compilers'
+  };
+
+  const activeQuestions: QuizQuestion[] = ALL_MODULE_QUIZZES[activeQuizModule] || ALL_MODULE_QUIZZES[1];
+
+  const handleExportGoogleForm = async () => {
+    setIsExportingForms(true);
+    setFormsError(null);
+    try {
+      let token = getCachedToken();
+      if (!token) {
+        const authRes = await signInWithGoogle();
+        token = authRes.accessToken;
+      }
+
+      const formRes = await createGoogleFormQuiz(
+        activeQuizModule,
+        moduleNames[activeQuizModule] || 'Automata Theory',
+        activeQuestions,
+        token
+      );
+
+      setGoogleFormUrl(formRes.responderUri);
+    } catch (err: any) {
+      console.error('Google Forms creation error:', err);
+      setFormsError(err?.message || 'Failed to generate Google Form. Make sure popups are allowed for Google Sign In.');
+    } finally {
+      setIsExportingForms(false);
+    }
+  };
 
   const handleSelectOption = (questionId: string, optionIdx: number) => {
     setSelectedAnswers((prev) => ({
@@ -25,7 +69,7 @@ export const AiTutorQuiz: React.FC<AiTutorQuizProps> = ({ isProjectorMode = fals
 
   const calculateScore = () => {
     let score = 0;
-    MODULE_1_QUIZ.forEach((q) => {
+    activeQuestions.forEach((q) => {
       if (selectedAnswers[q.id] === q.answerIndex) {
         score++;
       }
@@ -44,7 +88,7 @@ export const AiTutorQuiz: React.FC<AiTutorQuizProps> = ({ isProjectorMode = fals
       const res = await fetch('/api/ai/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userQuery, context: 'Module 1 Automata Theory' })
+        body: JSON.stringify({ question: userQuery, context: `Module ${activeQuizModule} Automata Theory` })
       });
       const data = await res.json();
       setAiResponse(data.answer || 'No response returned.');
@@ -69,117 +113,182 @@ export const AiTutorQuiz: React.FC<AiTutorQuizProps> = ({ isProjectorMode = fals
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <h2 className={`text-xl font-extrabold tracking-tight ${isProjectorMode ? 'text-slate-950' : 'text-white'}`}>
-                Module 1 Knowledge Check
-              </h2>
-              <p className={`text-xs font-semibold ${isProjectorMode ? 'text-slate-700' : 'text-slate-400'}`}>
-                Test your mastery of DFA, NFA, ε-NFA, subset construction, and complexity theory.
+              <div className="flex items-center gap-3">
+                <h2 className={`text-xl font-extrabold tracking-tight ${isProjectorMode ? 'text-slate-950' : 'text-white'}`}>
+                  Module Quiz:
+                </h2>
+                <select
+                  value={activeQuizModule}
+                  onChange={(e) => {
+                    setActiveQuizModule(Number(e.target.value));
+                    setSelectedAnswers({});
+                    setShowResults(false);
+                  }}
+                  className="bg-indigo-600 text-white font-bold text-xs rounded-xl px-3 py-1.5 focus:outline-none cursor-pointer border border-indigo-400/40"
+                >
+                  <option value={1}>Module 1: Finite Automata &amp; Subset Construction</option>
+                  <option value={2}>Module 2: Regular Expressions &amp; DFA Minimization</option>
+                  <option value={3}>Module 3: CFG, Parse Trees &amp; Normal Forms</option>
+                  <option value={4}>Module 4: Pushdown Automata (PDA)</option>
+                  <option value={5}>Module 5: Turing Machines &amp; Compilers</option>
+                </select>
+              </div>
+              <p className={`text-xs font-semibold mt-1 ${isProjectorMode ? 'text-slate-700' : 'text-slate-400'}`}>
+                Test your conceptual understanding and exam question readiness.
               </p>
             </div>
           </div>
 
-          {showResults ? (
-            <div className="flex items-center space-x-3">
-              <div className="text-sm font-extrabold bg-indigo-600 text-white px-4 py-2 rounded-xl">
-                Score: {calculateScore()} / {MODULE_1_QUIZ.length}
-              </div>
-              <button
-                onClick={() => {
-                  setSelectedAnswers({});
-                  setShowResults(false);
-                }}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors"
-              >
-                Retake Quiz
-              </button>
-            </div>
-          ) : (
+          <div className="flex items-center space-x-2">
             <button
-              onClick={() => setShowResults(true)}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+              onClick={handleExportGoogleForm}
+              disabled={isExportingForms}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2 border border-emerald-400/30"
+              title="Create an automated self-grading Google Form Quiz for this module"
             >
-              Submit Quiz
+              {isExportingForms ? (
+                <RefreshCw className="w-4 h-4 animate-spin text-white" />
+              ) : (
+                <FileText className="w-4 h-4 text-white" />
+              )}
+              <span>{isExportingForms ? 'Creating Form...' : `Create Google Form Quiz`}</span>
             </button>
-          )}
+
+            {showResults ? (
+              <div className="flex items-center space-x-3">
+                <div className="text-sm font-extrabold bg-indigo-600 text-white px-4 py-2 rounded-xl">
+                  Score: {calculateScore()} / {activeQuestions.length}
+                </div>
+                <button
+                  onClick={() => {
+                    setSelectedAnswers({});
+                    setShowResults(false);
+                  }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-xl transition-colors"
+                >
+                  Retake Quiz
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowResults(true)}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition-all"
+              >
+                Submit &amp; View Results
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Question Cards */}
+        {/* Google Forms Export Notification Banner */}
+        {googleFormUrl && (
+          <div className="p-4 bg-emerald-500/10 border-2 border-emerald-500/40 rounded-2xl space-y-3 font-sans">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                Google Form Quiz Created for Module {activeQuizModule}!
+              </span>
+              <a
+                href={googleFormUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow"
+              >
+                Open Google Form <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-mono bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-slate-300">
+              <span className="truncate flex-1">{googleFormUrl}</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(googleFormUrl);
+                  setCopiedLink(true);
+                  setTimeout(() => setCopiedLink(false), 2000);
+                }}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-lg flex items-center gap-1"
+              >
+                <Copy className="w-3 h-3" />
+                {copiedLink ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {formsError && (
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center justify-between">
+            <span>⚠️ {formsError}</span>
+            <button onClick={() => setFormsError(null)} className="text-slate-400 hover:text-white font-bold ml-2">✕</button>
+          </div>
+        )}
+
+        {/* Questions Grid */}
         <div className="space-y-6">
-          {MODULE_1_QUIZ.map((q, idx) => {
-            const userAns = selectedAnswers[q.id];
-            const isCorrect = userAns === q.answerIndex;
+          {activeQuestions.map((q, idx) => {
+            const isAnswered = selectedAnswers[q.id] !== undefined;
+            const isCorrect = selectedAnswers[q.id] === q.answerIndex;
 
             return (
               <div
                 key={q.id}
-                className={`p-5 rounded-2xl border transition-all ${
-                  showResults
-                    ? isCorrect
-                      ? isProjectorMode ? 'bg-emerald-100 border-2 border-emerald-600' : 'bg-emerald-950/30 border-emerald-500/50'
-                      : isProjectorMode ? 'bg-rose-100 border-2 border-rose-600' : 'bg-rose-950/30 border-rose-500/50'
-                    : isProjectorMode
-                    ? 'bg-slate-100 border-2 border-slate-400'
-                    : 'bg-slate-950 border-slate-800'
+                className={`p-5 rounded-2xl border space-y-4 transition-all ${
+                  isProjectorMode
+                    ? 'bg-slate-50 border-slate-300'
+                    : 'bg-slate-950/80 border-slate-800/80'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <span className={`text-xs font-mono font-extrabold uppercase tracking-widest ${
-                    isProjectorMode ? 'text-indigo-900' : 'text-indigo-400'
-                  }`}>
-                    Question {idx + 1} &bull; {q.topic}
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className={`font-bold text-sm leading-relaxed ${isProjectorMode ? 'text-slate-900' : 'text-slate-200'}`}>
+                    <span className="text-indigo-400 font-mono mr-2">Q{idx + 1}.</span>
+                    {q.question}
+                  </h3>
+                  <span className="text-[10px] font-mono font-bold uppercase bg-slate-800 text-indigo-300 px-2.5 py-1 rounded-full border border-slate-700 shrink-0">
+                    {q.topic}
                   </span>
-                  {showResults && (
-                    <span>
-                      {isCorrect ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      ) : (
-                        <XCircle className="w-5 h-5 text-rose-600" />
-                      )}
-                    </span>
-                  )}
                 </div>
 
-                <h3 className={`text-sm sm:text-base font-bold mb-4 ${isProjectorMode ? 'text-slate-950' : 'text-white'}`}>{q.question}</h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                   {q.options.map((opt, optIdx) => {
-                    const isSelected = userAns === optIdx;
-                    let optBg = isProjectorMode
-                      ? 'bg-white border-2 border-slate-300 text-slate-900 hover:border-slate-900 font-medium'
-                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700 hover:text-white';
+                    const isSelected = selectedAnswers[q.id] === optIdx;
+                    let optionStyle = 'border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800/80';
+
+                    if (isProjectorMode) {
+                      optionStyle = 'border-slate-300 bg-white text-slate-900 hover:bg-slate-100';
+                    }
+
+                    if (isSelected) {
+                      optionStyle = 'border-indigo-500 bg-indigo-600/20 text-white ring-2 ring-indigo-500';
+                    }
 
                     if (showResults) {
                       if (optIdx === q.answerIndex) {
-                        optBg = 'bg-emerald-600 text-white font-extrabold border-2 border-emerald-800';
-                      } else if (isSelected) {
-                        optBg = 'bg-rose-600 text-white font-bold border-2 border-rose-800';
+                        optionStyle = 'border-emerald-500 bg-emerald-500/20 text-emerald-300 font-bold';
+                      } else if (isSelected && !isCorrect) {
+                        optionStyle = 'border-rose-500 bg-rose-500/20 text-rose-300 font-bold';
                       }
-                    } else if (isSelected) {
-                      optBg = 'bg-indigo-600 text-white font-extrabold border-2 border-indigo-900';
                     }
 
                     return (
                       <button
                         key={optIdx}
+                        onClick={() => !showResults && handleSelectOption(q.id, optIdx)}
                         disabled={showResults}
-                        onClick={() => handleSelectOption(q.id, optIdx)}
-                        className={`p-3 rounded-xl text-left text-xs transition-all flex items-center justify-between ${optBg}`}
+                        className={`p-3 rounded-xl border text-left text-xs font-medium transition-all flex items-center justify-between ${optionStyle}`}
                       >
                         <span>{opt}</span>
-                        {isSelected && <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-900" />}
+                        {showResults && optIdx === q.answerIndex && (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 ml-2" />
+                        )}
+                        {showResults && isSelected && !isCorrect && (
+                          <XCircle className="w-4 h-4 text-rose-400 shrink-0 ml-2" />
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
                 {showResults && (
-                  <div className={`mt-4 p-3 rounded-xl border text-xs font-bold ${
-                    isProjectorMode
-                      ? 'bg-white border-slate-400 text-slate-950'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-300'
-                  }`}>
-                    <strong className={`block mb-1 ${isProjectorMode ? 'text-indigo-900' : 'text-indigo-400'}`}>Explanation:</strong>
-                    {q.explanation}
+                  <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-xs text-indigo-200">
+                    <strong>Explanation:</strong> {q.explanation}
                   </div>
                 )}
               </div>

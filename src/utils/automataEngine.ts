@@ -349,16 +349,51 @@ export function convertNfaToDfa(nfa: AutomatonData): { dfa: AutomatonData; subse
     });
   }
 
-  // Construct converted DFA AutomatonData
+  // Construct converted DFA AutomatonData with clean BFS level layout
   const subsetRows = Array.from(subsetMap.values());
-  const dfaStates = subsetRows.map((row, idx) => ({
-    id: row.dfaStateId,
-    label: row.dfaStateLabel,
-    x: 150 + (idx % 4) * 200,
-    y: 150 + Math.floor(idx / 4) * 180,
-    isStart: row.isStart,
-    isFinal: row.isFinal
-  }));
+
+  const depthMap = new Map<string, number>();
+  depthMap.set(initialKey, 0);
+
+  const levelGroups = new Map<number, typeof subsetRows>();
+
+  for (const row of subsetRows) {
+    const rowKey = keyFor(row.nfaStates);
+    const depth = depthMap.get(rowKey) ?? 0;
+
+    for (const sym of dfaAlphabet) {
+      const targetStates = row.transitions[sym].targetNfaStates;
+      const targetKey = keyFor(targetStates);
+      if (!depthMap.has(targetKey)) {
+        depthMap.set(targetKey, depth + 1);
+      }
+    }
+
+    if (!levelGroups.has(depth)) levelGroups.set(depth, []);
+    levelGroups.get(depth)!.push(row);
+  }
+
+  const dfaStates = subsetRows.map((row) => {
+    const rowKey = keyFor(row.nfaStates);
+    const depth = depthMap.get(rowKey) ?? 0;
+    const group = levelGroups.get(depth) || [row];
+    const indexInGroup = group.findIndex((r) => keyFor(r.nfaStates) === rowKey);
+    const groupSize = group.length;
+
+    const x = 120 + depth * 230;
+    const yCenter = 220;
+    const ySpacing = 150;
+    const y = yCenter + (indexInGroup - (groupSize - 1) / 2) * ySpacing;
+
+    return {
+      id: row.dfaStateId,
+      label: row.dfaStateLabel,
+      x: Math.round(x),
+      y: Math.round(y),
+      isStart: row.isStart,
+      isFinal: row.isFinal
+    };
+  });
 
   const dfaTransitions: AutomatonData['transitions'] = [];
   let transCounter = 0;

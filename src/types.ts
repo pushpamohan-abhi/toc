@@ -62,8 +62,10 @@ export interface SlideContent {
     codeOrDetails?: string;
   };
   presetAutomatonId?: string;
-  interactiveType?: 'switch' | 'then' | 'divisible3' | 'subset' | 'epsilon' | 'quiz_mini';
+  interactiveType?: 'switch' | 'then' | 'divisible3' | 'subset' | 'epsilon' | 'quiz_mini' | 'methodComparison' | 'nfaToDfaTables';
 }
+
+export type SlideData = SlideContent;
 
 export interface QuizQuestion {
   id: string;

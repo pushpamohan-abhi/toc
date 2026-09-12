@@ -247,6 +247,166 @@ export const MODULE_1_SLIDES: SlideContent[] = [
     presetAutomatonId: 'even_0_even_1'
   },
   {
+    id: 'slide_13_b',
+    number: 14,
+    title: 'DFA Case Study: Dual Modulo Length L = { w | |w| mod 5 = |w| mod 4 }',
+    category: '6. DFA Construction Strategies',
+    textbookSection: 'Module 1 Advanced DFA Construction',
+    bullets: [
+      'Problem Statement: Design a DFA to accept strings of a\'s and b\'s where L = { w | |w| mod 5 = |w| mod 4 }.',
+      'Why 20 States? If the condition were |w| mod 5 = 0, 5 states are needed. If |w| mod 4 = 0, 4 states are needed. To track BOTH modulo conditions simultaneously, we need LCM(5, 4) = 20 states.',
+      'Length-Only Dependence: Reading \'a\' or \'b\' increases string length by 1. The actual symbol (a or b) does not matter: δ(q_i, a) = δ(q_i, b) = q_{(i+1) mod 20}.',
+      'Cycle Wrap-around: At q19, reading one more symbol makes length 20. Working modulo 20, length 20 ≡ 0 (mod 20), so q19 --a,b--> q0.',
+      'Accepting States F = { q0, q1, q2, q3 }: Evaluating n mod 5 vs n mod 4 for n ∈ [0..19] reveals that n mod 5 = n mod 4 ONLY for n = 0, 1, 2, 3.'
+    ],
+    exampleBox: {
+      title: 'Remainder Evaluation Table (n mod 5 vs n mod 4)',
+      description: 'Length n | n mod 5 | n mod 4 | Accept?\n---------------------------------------\n   0     |    0    |    0    |  ✓ (q0)\n   1     |    1    |    1    |  ✓ (q1)\n   2     |    2    |    2    |  ✓ (q2)\n   3     |    3    |    3    |  ✓ (q3)\n   4     |    4    |    0    |  ✗ (q4)\n   5     |    0    |    1    |  ✗ (q5)\n   6     |    1    |    2    |  ✗ (q6)\n   7     |    2    |    3    |  ✗ (q7)\n  ...    |   ...   |   ...   |  ...\n  19     |    4    |    3    |  ✗ (q19)\n\nLanguage: L = { w | |w| ≡ 0, 1, 2, 3 (mod 20) }'
+    },
+    presetAutomatonId: 'len_mod5_eq_mod4'
+  },
+  {
+    id: 'slide_q2_a',
+    number: 15,
+    title: 'Solved Exam Problem: ε-NFA to DFA & ε-Closure (BCS503 Q2.a)',
+    category: '8. ε-NFA & Equivalence',
+    textbookSection: 'Module 1 Exam Solutions (Q2.a)',
+    bullets: [
+      'Problem Statement (BCS503 Q2.a): Find ε-closure for all states and convert the given Thompson ε-NFA to its equivalent DFA.',
+      'Step 1 — Calculate ε-Closures:',
+      '• ε-closure(q0) = {q0, q1, q2, q4, q7}',
+      '• ε-closure(q1) = {q1, q2, q4},   ε-closure(q2) = {q2},   ε-closure(q4) = {q4}',
+      '• ε-closure(q3) = {q1, q2, q3, q4, q6, q7},   ε-closure(q5) = {q1, q2, q4, q5, q6, q7}',
+      '• ε-closure(q6) = {q1, q2, q4, q6, q7},   ε-closure(q7) = {q7},   ε-closure(q8) = {q8},   ε-closure(q9) = {q9}',
+      'Step 2 — Subset Construction:',
+      '• Start DFA State A = ε-closure(q0) = {q0, q1, q2, q4, q7}',
+      '• δ_D(A, a) = ε-closure(δ(A, a)) = ε-closure({q3, q8}) = {q1, q2, q3, q4, q6, q7, q8} = B',
+      '• δ_D(A, b) = ε-closure(δ(A, b)) = ε-closure({q5}) = {q1, q2, q4, q5, q6, q7} = C',
+      '• δ_D(B, a) = B,   δ_D(B, b) = {q1, q2, q4, q5, q6, q7, q9} = D (Final State)',
+      '• δ_D(C, a) = B,   δ_D(C, b) = C,   δ_D(D, a) = B,   δ_D(D, b) = C'
+    ],
+    exampleBox: {
+      title: 'Resulting DFA Transition Table & Diagram',
+      description: 'State | Input a | Input b | Final?\n--------------------------------\n -> A  |    B    |    C    |   No\n    B  |    B    |   *D    |   No\n    C  |    B    |    C    |   No\n   *D  |    B    |    C    |  YES (contains q9)\n\nTransition Diagram:\n  ──► (A) ─── a ───► (B) ⟲ a\n       │              │\n       b              b\n       ▼              ▼\n      (C) ─── a ───► ((D)) ─── b ───► (C)\n       ⟲ b            │\n                      └─── a ───► (B)'
+    },
+    presetAutomatonId: 'dfa_vtu_q2a'
+  },
+  {
+    id: 'slide_q2_b_ii',
+    number: 16,
+    title: 'Solved Exam Problem: DFA Starts with ≥2 0s & Ends with ≥2 1s (BCS503 Q2.b.ii)',
+    category: '6. DFA Construction Strategies',
+    textbookSection: 'Module 1 Exam Solutions (Q2.b.ii)',
+    bullets: [
+      'Problem Statement (BCS503 Q2.b.ii): Construct a DFA to accept strings over {0,1} starting with at least two 0\'s ("00...") AND ending with at least two 1\'s ("...11").',
+      'State Decomposition Strategy:',
+      '• q0 (Start): Reading 0 moves to q1. Reading 1 violates prefix requirement → Dead State qd.',
+      '• q1 (Got single 0): Reading 0 moves to q2 ("00" matched). Reading 1 violates prefix → Dead State qd.',
+      '• q2 (Got "00", 0 trailing 1s): Reading 0 loops to q2. Reading 1 moves to q3.',
+      '• q3 (Got "00", 1 trailing 1): Reading 0 returns to q2. Reading 1 moves to q4 (Accepting!).',
+      '• q4 (Got "00", ≥2 trailing 1s — FINAL): Reading 0 returns to q2. Reading 1 loops in q4.',
+      '• qd (Dead State): Self-loops on 0 and 1.'
+    ],
+    exampleBox: {
+      title: 'DFA Transition Table & Transition Diagram',
+      description: 'State | Input 0 | Input 1 | Description\n--------------------------------------------\n -> q0  |   q1    |   qd    | Start (empty)\n    q1  |   q2    |   qd    | Matched "0"\n    q2  |   q2    |   q3    | Matched "00"\n    q3  |   q2    |  *q4    | Matched "00...1"\n   *q4  |   q2    |  *q4    | Matched "00...11" [ACCEPT]\n    qd  |   qd    |   qd    | Dead Trap State\n\nTransition Diagram:\n  ──► (q0) ─ 0 ─► (q1) ─ 0 ─► (q2) ⟲ 0 ─ 1 ─► (q3) ─ 1 ─► ((q4)) ⟲ 1\n       │           │            ▲              │            │\n       1           1            │              │            │\n       ▼           ▼            └───── 0 ──────┴──── 0 ─────┘\n      (qd) ⟲ 0,1 [Trap]'
+    },
+    presetAutomatonId: 'dfa_starts00_ends11'
+  },
+  {
+    id: 'slide_q2_c',
+    number: 17,
+    title: 'Solved Exam Problem: NFA to DFA via Lazy Evaluation Method (BCS503 Q2.c)',
+    category: '7. Nondeterministic Finite Automata',
+    textbookSection: 'Module 1 Exam Solutions (Q2.c)',
+    bullets: [
+      'Problem Statement (BCS503 Q2.c): Convert the given NFA to an equivalent DFA using the Lazy Evaluation Method (Subset Construction on Demand).',
+      'Original NFA Diagram:',
+      '  ──► (q0) ⟲ 0 ─── 0,1 ───► (q1) ─── 0,1 ───► ((q2)) ⟲ 1',
+      'What is Lazy Evaluation? Only compute transitions for state subsets that are REACHABLE from the start state, ignoring unreachable 2^|Q| combinations.',
+      'Step-by-Step Lazy Evaluation Construction:',
+      '1. Start State A = {q0}: δ_D(A, 0) = {q0, q1} = B, δ_D(A, 1) = {q1} = C',
+      '2. Evaluate B = {q0, q1}: δ_D(B, 0) = {q0, q1, q2} = D (FINAL), δ_D(B, 1) = {q1, q2} = E (FINAL)',
+      '3. Evaluate C = {q1}: δ_D(C, 0) = {q2} = F (FINAL), δ_D(C, 1) = {q2} = F (FINAL)',
+      '4. Evaluate D = {q0, q1, q2} (FINAL): δ_D(D, 0) = D, δ_D(D, 1) = E',
+      '5. Evaluate E = {q1, q2} (FINAL): δ_D(E, 0) = F, δ_D(E, 1) = F',
+      '6. Evaluate F = {q2} (FINAL): δ_D(F, 0) = ϕ (Trap), δ_D(F, 1) = F'
+    ],
+    exampleBox: {
+      title: 'Original NFA & Converted DFA Transition Diagrams',
+      description: 'Given NFA Transition Diagram:\n  ──► (q0) ⟲ 0 ─── 0,1 ───► (q1) ─── 0,1 ───► ((q2)) ⟲ 1\n\nConverted DFA Transition Diagram (Lazy Evaluation):\n  ──► (A) ──── 0 ────► (B) ──── 0 ────► ((D)) ⟲ 0\n       │                │                │\n       1                1                1\n       ▼                ▼                ▼\n      (C) ─── 0,1 ───► ((E)) ─── 0 ────► ((F)) ⟲ 1\n                        │                │\n                        └─── 1 ──────────┘'
+    },
+    presetAutomatonId: 'dfa_lazy_eval_q2c'
+  },
+  {
+    id: 'slide_1b_iii',
+    number: 18,
+    title: 'Solved Exam Problem: DFA for L = { w | |w| mod 3 ≠ 2 } (10CS56 Q1.b.iii)',
+    category: '6. DFA Construction Strategies',
+    textbookSection: 'Module 1 Exam Solutions (10CS56 Q1.b.iii)',
+    bullets: [
+      'Problem Statement (10CS56 Q1.b.iii): Construct a DFA to accept all strings over {a, b} such that L = { w | w ∈ {a, b}* and |w| mod 3 ≠ 2 }.',
+      'Language Analysis:',
+      '• Modulo 3 remainder can be 0, 1, or 2.',
+      '• Condition |w| mod 3 ≠ 2 means remainder MUST be 0 or 1.',
+      '• ACCEPTING States: Remainder 0 (q0) and Remainder 1 (q1).',
+      '• REJECTING State: Remainder 2 (q2).',
+      'State Decomposition:',
+      '• q0 (Start & Final): Represents |w| mod 3 = 0. On input a,b → moves to q1.',
+      '• q1 (Final): Represents |w| mod 3 = 1. On input a,b → moves to q2.',
+      '• q2 (Non-Final): Represents |w| mod 3 = 2. On input a,b → loops back to q0.'
+    ],
+    exampleBox: {
+      title: 'DFA Transition Table & Diagram',
+      description: 'State | Input a | Input b | Is Final State?\n-----------------------------------------\n-> *q0 |    q1   |    q1   |  YES (|w|%3 = 0)\n   *q1 |    q2   |    q2   |  YES (|w|%3 = 1)\n    q2 |    q0   |    q0   |  NO  (|w|%3 = 2)\n\nTransition Diagram:\n  ──► ((q0)) ─── a,b ───► ((q1)) ─── a,b ───► (q2)\n        ▲                                      │\n        └────────────────── a,b ───────────────┘'
+    },
+    presetAutomatonId: 'dfa_len_mod3_ne_2'
+  },
+  {
+    id: 'slide_1c_10cs56',
+    number: 19,
+    title: 'Solved Exam Problem: NFA to DFA Conversion (10CS56 Q1.c)',
+    category: '7. Nondeterministic Finite Automata',
+    textbookSection: 'Module 1 Exam Solutions (10CS56 Q1.c)',
+    bullets: [
+      'Problem Statement (10CS56 Q1.c): Convert the given 5-state NFA (p, q, r, s, t) to an equivalent DFA using Subset Construction.',
+      'Subset Construction Steps:',
+      '1. Start State A = {p}: δ_D(A, 0) = {p, q} = B, δ_D(A, 1) = {p} = A',
+      '2. Evaluate B = {p, q}: δ_D(B, 0) = {p, q} ∪ {r, s} = {p, q, r, s} = C (FINAL), δ_D(B, 1) = {p} ∪ {t} = {p, t} = D (FINAL)',
+      '3. Evaluate C = {p, q, r, s} (FINAL): δ_D(C, 0) = {p, q, r, s} = C, δ_D(C, 1) = {p, t} = D',
+      '4. Evaluate D = {p, t} (FINAL): δ_D(D, 0) = {p, q} = B, δ_D(D, 1) = {p} = A'
+    ],
+    exampleBox: {
+      title: 'Subset Derivation Summary',
+      description: 'Use the interactive tables below to view the original NFA transition table side-by-side with the converted DFA transition table and transition diagram.'
+    },
+    presetAutomatonId: 'dfa_10cs56_q1c',
+    interactiveType: 'nfaToDfaTables'
+  },
+  {
+    id: 'slide_comparison_subset_lazy',
+    number: 20,
+    title: 'Comparison: Standard Subset Construction vs. Lazy Evaluation Method',
+    category: '7. Nondeterministic Finite Automata',
+    textbookSection: 'Module 1 Theory & Method Comparison',
+    bullets: [
+      '1. Standard (Eager / Static) Subset Construction:',
+      '   • Computes all 2^|Q| possible state subsets upfront into a fixed transition table regardless of reachability.',
+      '   • Result: Contains redundant/unreachable states that must be eliminated later during DFA minimization.',
+      '   • Complexity: Always performs 2^|Q| × |Σ| transition lookups.',
+      '2. Lazy Evaluation Method (Subset Construction on Demand / Dynamic):',
+      '   • Starts ONLY at initial subset {q0} and lazily computes transitions ONLY for newly discovered reachable subsets.',
+      '   • Result: Produces a clean DFA containing ONLY reachable states without waste.',
+      '   • Complexity: O(k × |Σ|), where k ≤ 2^|Q| is the number of actually REACHABLE states (often k << 2^|Q|).'
+    ],
+    exampleBox: {
+      title: 'Method Summary',
+      description: 'Use the interactive comparison matrix below to explore execution efficiency, time/space complexity, and state-by-state evaluation traces comparing Standard Subset Construction against Lazy Evaluation.'
+    },
+    presetAutomatonId: 'nfa_lazy_eval_q2c',
+    interactiveType: 'methodComparison'
+  },
+  {
     id: 'slide_14',
     number: 14,
     title: 'Nondeterministic Finite Automata (NFA)',
@@ -468,5 +628,44 @@ export const MODULE_1_QUIZ: QuizQuestion[] = [
     answerIndex: 2,
     explanation: 'An ε-NFA transition function takes a state in Q and an input symbol from Σ OR ε, and maps it to a subset of states 𝒫(Q).',
     topic: 'ε-NFA Formalism'
+  },
+  {
+    id: 'q13',
+    question: 'For the language L = { w ∈ {a,b}* | |w| mod 5 = |w| mod 4 }, which string lengths mod 20 are accepting?',
+    options: [
+      'Lengths 0, 1, 2, 3 mod 20',
+      'Only length 0 mod 20',
+      'Lengths 0, 4, 8, 12, 16 mod 20',
+      'All odd lengths mod 20'
+    ],
+    answerIndex: 0,
+    explanation: 'Since lcm(5,4) = 20, we check n mod 5 == n mod 4 for n ∈ [0..19]. The equation holds true if and only if n mod 20 ∈ {0, 1, 2, 3}.',
+    topic: 'DFA Product Modulo Construction'
+  },
+  {
+    id: 'q14',
+    question: 'In the DFA for strings starting with at least two 0s and ending with at least two 1s (BCS503 Q2.b.ii), how many states are needed including the dead state?',
+    options: [
+      '6 states (q0, q1, q2, q3, q4, qd)',
+      '4 states',
+      '3 states',
+      '8 states'
+    ],
+    answerIndex: 0,
+    explanation: 'We need q0 (start), q1 (got 0), q2 (got 00), q3 (got 00...1), q4 (got 00...11 final), and qd (dead state for invalid prefix starting with 1 or 01). Total = 6 states.',
+    topic: 'Exam Problem Q2.b.ii'
+  },
+  {
+    id: 'q15',
+    question: 'When finding ε-closure(q0) for the Thompson NFA in Q2.a, which states are included?',
+    options: [
+      '{q0, q1, q2, q4, q7}',
+      '{q0} only',
+      '{q0, q1, q9}',
+      '{q0, q7, q8, q9}'
+    ],
+    answerIndex: 0,
+    explanation: 'From q0, ε-transitions lead to q1 and q7. From q1, ε-transitions lead to q2 and q4. Therefore, ε-closure(q0) = {q0, q1, q2, q4, q7}.',
+    topic: 'Exam Problem Q2.a'
   }
 ];

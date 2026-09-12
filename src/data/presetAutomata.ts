@@ -681,5 +681,233 @@ export const PRESET_AUTOMATA: AutomatonData[] = [
       { id: 't2_30', from: 'q2', to: 'q3', symbol: '0' }
     ],
     testStrings: ['111', '1010', '00', '101', 'ε']
+  },
+  {
+    id: 'len_mod5_eq_mod4',
+    name: 'DFA: String Length |w| mod 5 = |w| mod 4',
+    description: '20-state LCM(5,4) modulo automaton where L = { w | |w| mod 5 = |w| mod 4 }. Accepts lengths |w| ≡ 0, 1, 2, 3 (mod 20).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: Array.from({ length: 20 }, (_, i) => ({
+      id: `q${i}`,
+      label: `q${i} [${i % 5},${i % 4}]`,
+      x: 90 + (i % 5) * 140,
+      y: 75 + Math.floor(i / 5) * 95,
+      isStart: i === 0,
+      isFinal: i % 5 === i % 4
+    })),
+    transitions: Array.from({ length: 20 }, (_, i) => [
+      { id: `t${i}_a`, from: `q${i}`, to: `q${(i + 1) % 20}`, symbol: 'a' },
+      { id: `t${i}_b`, from: `q${i}`, to: `q${(i + 1) % 20}`, symbol: 'b' }
+    ]).flat(),
+    testStrings: ['', 'a', 'ab', 'aba', 'abab', 'aaaaa', 'aaaaaaaaaaaaaaaaaaaa', 'aaaaaaaaaaaaaaaaaaaaa']
+  },
+  {
+    id: 'dfa_starts00_ends11',
+    name: 'DFA: Starts with ≥2 0s & Ends with ≥2 1s (BCS503 Q2.b.ii)',
+    description: 'Accepts strings over {0,1} starting with at least two 0s ("00...") AND ending with at least two 1s ("...11").',
+    type: 'DFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'q0', label: 'q0 (Start: ε)', x: 80, y: 160, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1 (Got 0)', x: 220, y: 160, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (Got 00)', x: 380, y: 160, isStart: false, isFinal: false },
+      { id: 'q3', label: 'q3 (00...1)', x: 540, y: 160, isStart: false, isFinal: false },
+      { id: 'q4', label: 'q4 (00...11)', x: 700, y: 160, isStart: false, isFinal: true },
+      { id: 'qd', label: 'qd (Trap / Dead)', x: 220, y: 310, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_0', from: 'q0', to: 'q1', symbol: '0' },
+      { id: 't0_1', from: 'q0', to: 'qd', symbol: '1' },
+      { id: 't1_0', from: 'q1', to: 'q2', symbol: '0' },
+      { id: 't1_1', from: 'q1', to: 'qd', symbol: '1' },
+      { id: 't2_0', from: 'q2', to: 'q2', symbol: '0' },
+      { id: 't2_1', from: 'q2', to: 'q3', symbol: '1' },
+      { id: 't3_0', from: 'q3', to: 'q2', symbol: '0' },
+      { id: 't3_1', from: 'q3', to: 'q4', symbol: '1' },
+      { id: 't4_0', from: 'q4', to: 'q2', symbol: '0' },
+      { id: 't4_1', from: 'q4', to: 'q4', symbol: '1' },
+      { id: 'td_0', from: 'qd', to: 'qd', symbol: '0' },
+      { id: 'td_1', from: 'qd', to: 'qd', symbol: '1' }
+    ],
+    testStrings: ['0011', '00011', '001011', '001111', '001', '010011', '10011', '00']
+  },
+  {
+    id: 'enfa_vtu_q2a',
+    name: 'ε-NFA to DFA Conversion (BCS503 Q2.a)',
+    description: 'Find ε-closure and convert to DFA for Thompson NFA accepting (a+b)*ab.',
+    type: 'ENFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: 'q0 (Start)', x: 80, y: 200, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1', x: 200, y: 120, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2', x: 320, y: 80, isStart: false, isFinal: false },
+      { id: 'q3', label: 'q3', x: 440, y: 80, isStart: false, isFinal: false },
+      { id: 'q4', label: 'q4', x: 320, y: 160, isStart: false, isFinal: false },
+      { id: 'q5', label: 'q5', x: 440, y: 160, isStart: false, isFinal: false },
+      { id: 'q6', label: 'q6', x: 560, y: 120, isStart: false, isFinal: false },
+      { id: 'q7', label: 'q7', x: 200, y: 280, isStart: false, isFinal: false },
+      { id: 'q8', label: 'q8', x: 440, y: 280, isStart: false, isFinal: false },
+      { id: 'q9', label: 'q9 (Final)', x: 640, y: 280, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 't0_eps1', from: 'q0', to: 'q1', symbol: 'ε' },
+      { id: 't0_eps7', from: 'q0', to: 'q7', symbol: 'ε' },
+      { id: 't1_eps2', from: 'q1', to: 'q2', symbol: 'ε' },
+      { id: 't1_eps4', from: 'q1', to: 'q4', symbol: 'ε' },
+      { id: 't2_a', from: 'q2', to: 'q3', symbol: 'a' },
+      { id: 't4_b', from: 'q4', to: 'q5', symbol: 'b' },
+      { id: 't3_eps6', from: 'q3', to: 'q6', symbol: 'ε' },
+      { id: 't5_eps6', from: 'q5', to: 'q6', symbol: 'ε' },
+      { id: 't6_eps1', from: 'q6', to: 'q1', symbol: 'ε' },
+      { id: 't6_eps7', from: 'q6', to: 'q7', symbol: 'ε' },
+      { id: 't7_a', from: 'q7', to: 'q8', symbol: 'a' },
+      { id: 't8_b', from: 'q8', to: 'q9', symbol: 'b' }
+    ],
+    testStrings: ['ab', 'aab', 'bab', 'bbab', 'aaaab', 'a', 'b', 'ba']
+  },
+  {
+    id: 'nfa_lazy_eval_q2c',
+    name: 'NFA: Lazy Evaluation Candidate (BCS503 Q2.c)',
+    description: 'NFA with q0 self-loop 0, q0->q1 on 0,1, q1->q2 on 0,1, q2 self-loop 1.',
+    type: 'NFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'q0', label: 'q0 (Start)', x: 140, y: 180, isStart: true, isFinal: false },
+      { id: 'q1', label: 'q1', x: 340, y: 180, isStart: false, isFinal: false },
+      { id: 'q2', label: 'q2 (Final)', x: 540, y: 180, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 't0_0', from: 'q0', to: 'q0', symbol: '0' },
+      { id: 't0_01', from: 'q0', to: 'q1', symbol: '0, 1' },
+      { id: 't1_01', from: 'q1', to: 'q2', symbol: '0, 1' },
+      { id: 't2_1', from: 'q2', to: 'q2', symbol: '1' }
+    ],
+    testStrings: ['000', '001', '011', '101', '1111', '0', '1']
+  },
+  {
+    id: 'dfa_lazy_eval_q2c',
+    name: 'DFA: Converted from NFA Q2.c (Lazy Evaluation Method)',
+    description: 'Equivalent 6-state DFA derived from NFA Q2.c via Lazy Evaluation (Subset Construction on Demand).',
+    type: 'DFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'A', label: 'A {q0}', x: 100, y: 200, isStart: true, isFinal: false },
+      { id: 'B', label: 'B {q0,q1}', x: 300, y: 110, isStart: false, isFinal: false },
+      { id: 'C', label: 'C {q1}', x: 300, y: 290, isStart: false, isFinal: false },
+      { id: 'D', label: '*D {q0,q1,q2}', x: 520, y: 110, isStart: false, isFinal: true },
+      { id: 'E', label: '*E {q1,q2}', x: 520, y: 290, isStart: false, isFinal: true },
+      { id: 'F', label: '*F {q2}', x: 740, y: 290, isStart: false, isFinal: true },
+      { id: 'qd', label: 'ϕ (Dead)', x: 920, y: 290, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 'tA_0', from: 'A', to: 'B', symbol: '0' },
+      { id: 'tA_1', from: 'A', to: 'C', symbol: '1' },
+      { id: 'tB_0', from: 'B', to: 'D', symbol: '0' },
+      { id: 'tB_1', from: 'B', to: 'E', symbol: '1' },
+      { id: 'tC_0', from: 'C', to: 'F', symbol: '0' },
+      { id: 'tC_1', from: 'C', to: 'F', symbol: '1' },
+      { id: 'tD_0', from: 'D', to: 'D', symbol: '0' },
+      { id: 'tD_1', from: 'D', to: 'E', symbol: '1' },
+      { id: 'tE_0', from: 'E', to: 'F', symbol: '0' },
+      { id: 'tE_1', from: 'E', to: 'F', symbol: '1' },
+      { id: 'tF_0', from: 'F', to: 'qd', symbol: '0' },
+      { id: 'tF_1', from: 'F', to: 'F', symbol: '1' },
+      { id: 'tqd_0', from: 'qd', to: 'qd', symbol: '0' },
+      { id: 'tqd_1', from: 'qd', to: 'qd', symbol: '1' }
+    ],
+    testStrings: ['000', '001', '011', '101', '1111', '0', '1']
+  },
+  {
+    id: 'dfa_vtu_q2a',
+    name: 'DFA: Converted from ε-NFA Q2.a (Subset Construction)',
+    description: 'Equivalent DFA derived from Thompson ε-NFA for language (a+b)*ab.',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'A', label: 'A {q0,q1,q2,q4,q7}', x: 110, y: 200, isStart: true, isFinal: false },
+      { id: 'B', label: 'B {q1..q4,q6..q8}', x: 350, y: 110, isStart: false, isFinal: false },
+      { id: 'C', label: 'C {q1,q2,q4..q7}', x: 350, y: 290, isStart: false, isFinal: false },
+      { id: 'D', label: '*D (Final: contains q9)', x: 600, y: 200, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 'tA_a', from: 'A', to: 'B', symbol: 'a' },
+      { id: 'tA_b', from: 'A', to: 'C', symbol: 'b' },
+      { id: 'tB_a', from: 'B', to: 'B', symbol: 'a' },
+      { id: 'tB_b', from: 'B', to: 'D', symbol: 'b' },
+      { id: 'tC_a', from: 'C', to: 'B', symbol: 'a' },
+      { id: 'tC_b', from: 'C', to: 'C', symbol: 'b' },
+      { id: 'tD_a', from: 'D', to: 'B', symbol: 'a' },
+      { id: 'tD_b', from: 'D', to: 'C', symbol: 'b' }
+    ],
+    testStrings: ['ab', 'aab', 'bab', 'bbab', 'aaaab', 'a', 'b', 'ba']
+  },
+  {
+    id: 'dfa_len_mod3_ne_2',
+    name: 'DFA: String Length |w| mod 3 ≠ 2 (10CS56 Q1.b.iii)',
+    description: 'DFA over {a,b} accepting all strings whose length modulo 3 is NOT 2 (i.e. length mod 3 = 0 or 1).',
+    type: 'DFA',
+    alphabet: ['a', 'b'],
+    states: [
+      { id: 'q0', label: '*q0 (|w|%3=0)', x: 150, y: 200, isStart: true, isFinal: true },
+      { id: 'q1', label: '*q1 (|w|%3=1)', x: 380, y: 200, isStart: false, isFinal: true },
+      { id: 'q2', label: 'q2 (|w|%3=2)', x: 610, y: 200, isStart: false, isFinal: false }
+    ],
+    transitions: [
+      { id: 't0_ab', from: 'q0', to: 'q1', symbol: 'a, b' },
+      { id: 't1_ab', from: 'q1', to: 'q2', symbol: 'a, b' },
+      { id: 't2_ab', from: 'q2', to: 'q0', symbol: 'a, b' }
+    ],
+    testStrings: ['', 'a', 'b', 'ab', 'aba', 'abab', 'ababa', 'aababb']
+  },
+  {
+    id: 'nfa_10cs56_q1c',
+    name: 'NFA: Table Conversion Candidate (10CS56 Q1.c)',
+    description: 'NFA with 5 states (p, q, r, s, t) where s and t are accepting states.',
+    type: 'NFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'p', label: 'p (Start)', x: 100, y: 200, isStart: true, isFinal: false },
+      { id: 'q', label: 'q', x: 260, y: 120, isStart: false, isFinal: false },
+      { id: 'r', label: 'r', x: 260, y: 280, isStart: false, isFinal: false },
+      { id: 's', label: '*s (Final)', x: 440, y: 120, isStart: false, isFinal: true },
+      { id: 't', label: '*t (Final)', x: 440, y: 280, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 'tp_0_p', from: 'p', to: 'p', symbol: '0' },
+      { id: 'tp_0_q', from: 'p', to: 'q', symbol: '0' },
+      { id: 'tp_1_p', from: 'p', to: 'p', symbol: '1' },
+      { id: 'tq_0_r', from: 'q', to: 'r', symbol: '0' },
+      { id: 'tq_0_s', from: 'q', to: 's', symbol: '0' },
+      { id: 'tq_1_t', from: 'q', to: 't', symbol: '1' },
+      { id: 'tr_0_p', from: 'r', to: 'p', symbol: '0' },
+      { id: 'tr_0_r', from: 'r', to: 'r', symbol: '0' },
+      { id: 'tr_1_t', from: 'r', to: 't', symbol: '1' }
+    ],
+    testStrings: ['00', '01', '000', '001', '0', '1']
+  },
+  {
+    id: 'dfa_10cs56_q1c',
+    name: 'DFA: Converted from NFA 10CS56 Q1.c (Subset Construction)',
+    description: 'Converted 4-state DFA (A={p}, B={p,q}, C={p,q,r,s}, D={p,t}) from 10CS56 Q1.c.',
+    type: 'DFA',
+    alphabet: ['0', '1'],
+    states: [
+      { id: 'A', label: 'A {p}', x: 120, y: 200, isStart: true, isFinal: false },
+      { id: 'B', label: 'B {p,q}', x: 320, y: 120, isStart: false, isFinal: false },
+      { id: 'C', label: '*C {p,q,r,s}', x: 560, y: 120, isStart: false, isFinal: true },
+      { id: 'D', label: '*D {p,t}', x: 320, y: 280, isStart: false, isFinal: true }
+    ],
+    transitions: [
+      { id: 'tA_0', from: 'A', to: 'B', symbol: '0' },
+      { id: 'tA_1', from: 'A', to: 'A', symbol: '1' },
+      { id: 'tB_0', from: 'B', to: 'C', symbol: '0' },
+      { id: 'tB_1', from: 'B', to: 'D', symbol: '1' },
+      { id: 'tC_0', from: 'C', to: 'C', symbol: '0' },
+      { id: 'tC_1', from: 'C', to: 'D', symbol: '1' },
+      { id: 'tD_0', from: 'D', to: 'B', symbol: '0' },
+      { id: 'tD_1', from: 'D', to: 'A', symbol: '1' }
+    ],
+    testStrings: ['00', '01', '000', '001', '0', '1']
   }
 ];

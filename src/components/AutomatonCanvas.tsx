@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { AutomatonData, AutomatonState, Transition } from '../types';
+import { ZoomIn, ZoomOut, Maximize2, Move } from 'lucide-react';
 
 interface AutomatonCanvasProps {
   automaton: AutomatonData;
@@ -21,14 +22,104 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
   onSelectState,
   onSelectTransition,
   selectedStateId,
-  height = 420,
+  height = 460,
   isProjectorMode = false,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [draggingStateId, setDraggingStateId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // Pan & Zoom state
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
   const stateRadius = 26;
+
+  // Auto-calculate viewBox boundary so any automaton (small or 20+ states) fits completely
+  const boundingBox = useMemo(() => {
+    if (!automaton.states.length) return { x: 0, y: 0, w: 800, h: 460 };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const s of automaton.states) {
+      if (s.x < minX) minX = s.x;
+      if (s.y < minY) minY = s.y;
+      if (s.x > maxX) maxX = s.x;
+      if (s.y > maxY) maxY = s.y;
+    }
+    const padding = 75;
+    const x = Math.min(-30, minX - padding);
+    const y = Math.min(-30, minY - padding);
+    const w = Math.max(760, maxX - x + padding);
+    const h = Math.max(440, maxY - y + padding);
+    return { x, y, w, h };
+  }, [automaton.states]);
+
+  // Derived viewBox incorporating zoom & pan
+  const viewBoxStr = useMemo(() => {
+    const vW = boundingBox.w / zoomLevel;
+    const vH = boundingBox.h / zoomLevel;
+    const vX = boundingBox.x + panOffset.x + (boundingBox.w - vW) / 2;
+    const vY = boundingBox.y + panOffset.y + (boundingBox.h - vH) / 2;
+    return `${vX} ${vY} ${vW} ${vH}`;
+  }, [boundingBox, zoomLevel, panOffset]);
+
+  const handleZoomIn = () => setZoomLevel((z) => Math.min(2.5, z + 0.25));
+  const handleZoomOut = () => setZoomLevel((z) => Math.max(0.35, z - 0.25));
+  const handleResetZoom = () => {
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
+  };
+
+  // Convert client cursor position into exact SVG Canvas coordinates
+  const getSvgCoordinates = (e: React.MouseEvent) => {
+    if (!svgRef.current) return { x: e.clientX, y: e.clientY };
+    const pt = svgRef.current.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const svgP = pt.matrixTransform(svgRef.current.getScreenCTM()?.inverse());
+    return { x: svgP.x, y: svgP.y };
+  };
+
+  // Drag node handlers
+  const handleMouseDownNode = (e: React.MouseEvent, state: AutomatonState) => {
+    e.stopPropagation();
+    if (onSelectState) onSelectState(state.id);
+    if (!onUpdateStatePos) return;
+
+    setDraggingStateId(state.id);
+    const coords = getSvgCoordinates(e);
+    setDragOffset({
+      x: coords.x - state.x,
+      y: coords.y - state.y
+    });
+  };
+
+  const handleMouseDownCanvas = (e: React.MouseEvent) => {
+    if (e.target === svgRef.current || (e.target as HTMLElement).tagName === 'svg') {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (draggingStateId && onUpdateStatePos) {
+      const coords = getSvgCoordinates(e);
+      const newX = coords.x - dragOffset.x;
+      const newY = coords.y - dragOffset.y;
+      onUpdateStatePos(draggingStateId, Math.round(newX), Math.round(newY));
+    } else if (isPanning) {
+      const dx = (e.clientX - panStart.x) * (boundingBox.w / 800) * (1 / zoomLevel);
+      const dy = (e.clientY - panStart.y) * (boundingBox.h / 460) * (1 / zoomLevel);
+      setPanOffset((prev) => ({ x: prev.x - dx, y: prev.y - dy }));
+      setPanStart({ x: e.clientX, y: e.clientY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setDraggingStateId(null);
+    setIsPanning(false);
+  };
 
   // Group transitions by pair of states to calculate curvature offset
   const transitionPairs = new Map<string, Transition[]>();
@@ -39,34 +130,6 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
     }
     transitionPairs.get(pairKey)!.push(t);
   });
-
-  // Drag handlers
-  const handleMouseDownNode = (e: React.MouseEvent, state: AutomatonState) => {
-    e.stopPropagation();
-    if (onSelectState) onSelectState(state.id);
-    if (!onUpdateStatePos) return;
-
-    setDraggingStateId(state.id);
-    const svgRect = svgRef.current?.getBoundingClientRect();
-    if (svgRect) {
-      setDragOffset({
-        x: e.clientX - svgRect.left - state.x,
-        y: e.clientY - svgRect.top - state.y
-      });
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingStateId || !onUpdateStatePos || !svgRef.current) return;
-    const svgRect = svgRef.current.getBoundingClientRect();
-    const newX = Math.max(stateRadius + 10, Math.min(svgRect.width - stateRadius - 10, e.clientX - svgRect.left - dragOffset.x));
-    const newY = Math.max(stateRadius + 10, Math.min(height - stateRadius - 10, e.clientY - svgRect.top - dragOffset.y));
-    onUpdateStatePos(draggingStateId, Math.round(newX), Math.round(newY));
-  };
-
-  const handleMouseUp = () => {
-    setDraggingStateId(null);
-  };
 
   // Group transitions by direction (from -> to) so multiple transitions on the same path are merged cleanly into a single badge (e.g. "0, 1")
   const groupedTransitions = React.useMemo(() => {
@@ -170,21 +233,27 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
     const normX = dx / dist;
     const normY = dy / dist;
 
-    // Control point curvature
-    const curveOffset = isReversePair ? 35 : 0;
+    // Control point curvature: reverse pair OR long-distance transitions (> 240px)
+    const isLongDistance = dist > 240;
+    const curveOffset = isReversePair ? 36 : (isLongDistance ? 30 : 0);
     const perpX = -normY * curveOffset;
     const perpY = normX * curveOffset;
 
     const midX = (source.x + target.x) / 2 + perpX;
     const midY = (source.y + target.y) / 2 + perpY;
 
-    // Calculate edge intersections with state circles
-    const startX = source.x + normX * stateRadius + perpX * 0.3;
-    const startY = source.y + normY * stateRadius + perpY * 0.3;
-    const endX = target.x - normX * stateRadius + perpX * 0.3;
-    const endY = target.y - normY * stateRadius + perpY * 0.3;
+    // Dynamic state radii for source & target based on label lengths
+    const sourceRadius = Math.max(26, Math.min(48, source.label.length * 4.2));
+    const targetRadius = Math.max(26, Math.min(48, target.label.length * 4.2));
 
-    const pathD = isReversePair
+    // Calculate edge intersections with state circles
+    const startX = source.x + normX * sourceRadius + perpX * 0.3;
+    const startY = source.y + normY * sourceRadius + perpY * 0.3;
+    const endX = target.x - normX * targetRadius + perpX * 0.3;
+    const endY = target.y - normY * targetRadius + perpY * 0.3;
+
+    const shouldCurve = isReversePair || isLongDistance;
+    const pathD = shouldCurve
       ? `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`
       : `M ${startX} ${startY} L ${endX} ${endY}`;
 
@@ -257,10 +326,45 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
         }}
       />
 
+      {/* Floating Canvas Controls: Zoom In, Zoom Out, Fit to Screen, Drag Indicator */}
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5 p-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/60 shadow-lg select-none">
+        <div className="hidden sm:flex items-center gap-1 text-[11px] font-medium text-slate-400 border-r border-slate-700/80 pr-2 mr-0.5">
+          <Move className="w-3 h-3 text-indigo-400" />
+          <span>Pan & Drag</span>
+        </div>
+        <button
+          onClick={handleZoomIn}
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          title="Zoom In (+)"
+        >
+          <ZoomIn className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+          title="Zoom Out (-)"
+        >
+          <ZoomOut className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleResetZoom}
+          className="p-1.5 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold px-2"
+          title="Fit Diagram to Viewport"
+        >
+          <Maximize2 className="w-3.5 h-3.5" />
+          <span>Fit Screen</span>
+        </button>
+        <span className="text-[10px] font-mono text-slate-400 pl-1 border-l border-slate-700">
+          {Math.round(zoomLevel * 100)}%
+        </span>
+      </div>
+
       <svg
         ref={svgRef}
-        className="w-full relative z-10 select-none"
+        viewBox={viewBoxStr}
+        className="w-full relative z-10 select-none cursor-grab active:cursor-grabbing"
         style={{ height }}
+        onMouseDown={handleMouseDownCanvas}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
@@ -317,6 +421,10 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
           const isActive = activeStateIds.includes(state.id);
           const isSelected = selectedStateId === state.id;
 
+          const labelLength = state.label.length;
+          const nodeRadius = Math.max(stateRadius, Math.min(48, labelLength * 4.2));
+          const fontSz = labelLength > 14 ? '9' : (labelLength > 8 ? '10' : (isProjectorMode ? '13' : '12'));
+
           let circleFill = isProjectorMode ? '#ffffff' : '#0f172a';
           let strokeColor = isProjectorMode ? '#0f172a' : '#475569';
           let textColor = isProjectorMode ? '#0f172a' : '#f1f5f9';
@@ -338,7 +446,7 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
             >
               {/* Start State Indicator Arrow */}
               {state.isStart && (
-                <g transform="translate(-48, 0)">
+                <g transform={`translate(${-nodeRadius - 22}, 0)`}>
                   <path
                     d="M 0 0 L 18 0"
                     stroke={isProjectorMode ? '#0f172a' : '#e2e8f0'}
@@ -354,7 +462,7 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
               {/* Active Glow Effect */}
               {isActive && (
                 <circle
-                  r={stateRadius + 8}
+                  r={nodeRadius + 8}
                   fill="none"
                   stroke={isProjectorMode ? '#2563eb' : '#06b6d4'}
                   strokeWidth="3"
@@ -364,7 +472,7 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
 
               {/* Main Outer Circle */}
               <circle
-                r={stateRadius}
+                r={nodeRadius}
                 fill={circleFill}
                 stroke={strokeColor}
                 strokeWidth={isProjectorMode ? (isActive || isSelected ? 4 : 3) : (isActive || isSelected ? 3 : 2)}
@@ -374,7 +482,7 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
               {/* Final State Double Ring */}
               {state.isFinal && (
                 <circle
-                  r={stateRadius - 5}
+                  r={nodeRadius - 5}
                   fill="none"
                   stroke={strokeColor}
                   strokeWidth={isProjectorMode ? 3 : 2}
@@ -386,7 +494,7 @@ export const AutomatonCanvas: React.FC<AutomatonCanvasProps> = ({
                 textAnchor="middle"
                 dy="4"
                 fill={textColor}
-                fontSize={isProjectorMode ? "13" : "12"}
+                fontSize={fontSz}
                 fontWeight="800"
                 className="select-none pointer-events-none"
               >

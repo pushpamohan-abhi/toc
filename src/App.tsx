@@ -5,10 +5,19 @@ import { AutomatonCanvas } from './components/AutomatonCanvas';
 import { SimulationControls } from './components/SimulationControls';
 import { BatchTester } from './components/BatchTester';
 import { NfaToDfaConverterView } from './components/NfaToDfaConverterView';
+import { DfaMinimizerView } from './components/DfaMinimizerView';
+import { CfgParseTreeView } from './components/CfgParseTreeView';
+import { PdaSimulatorView } from './components/PdaSimulatorView';
+import { TuringMachineSimulatorView } from './components/TuringMachineSimulatorView';
 import { AutomatonBuilder } from './components/AutomatonBuilder';
 import { AiTutorQuiz } from './components/AiTutorQuiz';
 
 import { MODULE_1_SLIDES } from './data/module1Notes';
+import { MODULE_2_SLIDES } from './data/module2Notes';
+import { MODULE_3_SLIDES } from './data/module3Notes';
+import { MODULE_4_SLIDES } from './data/module4Notes';
+import { MODULE_5_SLIDES } from './data/module5Notes';
+
 import { PRESET_AUTOMATA } from './data/presetAutomata';
 import { AutomatonData, SimulationStep } from './types';
 import { simulateAutomaton } from './utils/automataEngine';
@@ -17,8 +26,17 @@ import { PlayCircle, HelpCircle, X, Sparkles, Code2, BookOpen, Layers, Upload } 
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('slides');
+  const [selectedModule, setSelectedModule] = useState<number>(1);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isProjectorMode, setIsProjectorMode] = useState(false);
+
+  // Determine current module slides
+  const slidesForCurrentModule = 
+    selectedModule === 2 ? MODULE_2_SLIDES :
+    selectedModule === 3 ? MODULE_3_SLIDES :
+    selectedModule === 4 ? MODULE_4_SLIDES :
+    selectedModule === 5 ? MODULE_5_SLIDES :
+    MODULE_1_SLIDES;
 
   // Custom Uploaded Automata & Main Selected Automaton
   const [customAutomata, setCustomAutomata] = useState<AutomatonData[]>([]);
@@ -141,6 +159,8 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        selectedModule={selectedModule}
+        setSelectedModule={setSelectedModule}
         onOpenHelp={() => setShowHelpModal(true)}
         isProjectorMode={isProjectorMode}
         setIsProjectorMode={setIsProjectorMode}
@@ -148,10 +168,10 @@ export default function App() {
 
       {/* Main Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* TAB 1: MODULE 1 SLIDES */}
+        {/* TAB 1: LECTURE SLIDES (MODULES 1 TO 5) */}
         {activeTab === 'slides' && (
           <SlideViewer
-            slides={MODULE_1_SLIDES}
+            slides={slidesForCurrentModule}
             isProjectorMode={isProjectorMode}
             onSelectAutomatonForSimulation={(auto) => {
               setSelectedAutomaton(auto);
@@ -354,7 +374,19 @@ export default function App() {
           />
         )}
 
-        {/* TAB 4: AUTOMATON BUILDER */}
+        {/* TAB 4: DFA MINIMIZER (MODULE 2) */}
+        {activeTab === 'minimizer' && <DfaMinimizerView isProjectorMode={isProjectorMode} />}
+
+        {/* TAB 5: CFG & PARSE TREES (MODULE 3) */}
+        {activeTab === 'cfg' && <CfgParseTreeView isProjectorMode={isProjectorMode} />}
+
+        {/* TAB 6: PDA STACK SIMULATOR (MODULE 4) */}
+        {activeTab === 'pda' && <PdaSimulatorView isProjectorMode={isProjectorMode} />}
+
+        {/* TAB 7: TURING MACHINE SIMULATOR (MODULE 5) */}
+        {activeTab === 'tm' && <TuringMachineSimulatorView isProjectorMode={isProjectorMode} />}
+
+        {/* TAB 8: AUTOMATON BUILDER */}
         {activeTab === 'builder' && (
           <AutomatonBuilder
             isProjectorMode={isProjectorMode}
@@ -368,7 +400,7 @@ export default function App() {
           />
         )}
 
-        {/* TAB 5: QUIZ & AI TUTOR */}
+        {/* TAB 9: QUIZ & AI TUTOR */}
         {activeTab === 'quiz' && <AiTutorQuiz isProjectorMode={isProjectorMode} />}
       </main>
 

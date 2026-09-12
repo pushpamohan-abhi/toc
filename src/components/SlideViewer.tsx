@@ -380,6 +380,293 @@ export const SlideViewer: React.FC<SlideViewerProps> = ({
               </div>
             </div>
           )}
+
+          {currentSlide.interactiveType === 'methodComparison' && (
+            <div className={`border rounded-2xl p-6 space-y-5 shadow-2xl ${
+              isProjectorMode
+                ? 'bg-indigo-50 border-2 border-indigo-600 text-slate-950'
+                : 'bg-slate-950 border-indigo-500/40 text-slate-100'
+            }`}>
+              <div className="flex items-center justify-between border-b pb-3 border-indigo-500/20">
+                <h3 className="text-lg font-black text-indigo-400 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-500" />
+                  Interactive Method Comparison Matrix
+                </h3>
+                <span className="text-xs font-mono font-bold bg-indigo-600/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
+                  NFA to DFA Algorithms
+                </span>
+              </div>
+
+              {/* Main Features Grid Table */}
+              <div className="overflow-x-auto rounded-xl border border-slate-800">
+                <table className="w-full text-left text-xs sm:text-sm font-sans">
+                  <thead className={isProjectorMode ? 'bg-indigo-950 text-white' : 'bg-slate-900 text-indigo-300 font-black'}>
+                    <tr>
+                      <th className="p-3.5">Feature / Metric</th>
+                      <th className="p-3.5 text-rose-400">Standard Subset Construction (Static / Eager)</th>
+                      <th className="p-3.5 text-emerald-400">Lazy Evaluation Method (Dynamic / On-Demand)</th>
+                    </tr>
+                  </thead>
+                  <tbody className={`divide-y ${isProjectorMode ? 'divide-slate-300 text-slate-900 font-semibold' : 'divide-slate-800 text-slate-200 font-medium'}`}>
+                    <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950/60'}>
+                      <td className="p-3.5 font-bold">Execution Strategy</td>
+                      <td className="p-3.5 text-rose-400/90 font-mono">Computes all 2^|Q| combinations upfront</td>
+                      <td className="p-3.5 text-emerald-400 font-mono font-bold">Starts at start state {"{q0}"}, expands on-demand</td>
+                    </tr>
+                    <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                      <td className="p-3.5 font-bold">Total States Evaluated</td>
+                      <td className="p-3.5 font-mono">Always 2^|Q| states</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-400">Only k reachable states (k &lt;&lt; 2^|Q|)</td>
+                    </tr>
+                    <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950/60'}>
+                      <td className="p-3.5 font-bold">Unreachable Subsets</td>
+                      <td className="p-3.5 text-rose-400 font-mono">Included in initial table (Wasted computation)</td>
+                      <td className="p-3.5 text-emerald-400 font-mono font-bold">Automatically skipped (Never generated)</td>
+                    </tr>
+                    <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                      <td className="p-3.5 font-bold">Time &amp; Space Complexity</td>
+                      <td className="p-3.5 font-mono">O(2^|Q| &times; |&Sigma;|)</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-400">O(k &times; |&Sigma;|), k = reachable states</td>
+                    </tr>
+                    <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950/60'}>
+                      <td className="p-3.5 font-bold">DFA Minimization Required?</td>
+                      <td className="p-3.5 font-mono text-rose-400">YES (must prune unreachable states)</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-400">NO (all generated states are reachable)</td>
+                    </tr>
+                    <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                      <td className="p-3.5 font-bold">VTU Exam Recommendation</td>
+                      <td className="p-3.5 font-mono">Tedious &amp; error-prone for |Q| &ge; 3</td>
+                      <td className="p-3.5 font-mono font-bold text-emerald-400">PREFERRED METHOD for exam answers</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* State Evaluation Comparison Table for NFA Q2.c */}
+              <div className="space-y-2 pt-2">
+                <span className="text-xs font-mono font-black text-indigo-400 uppercase tracking-wider block">
+                  Example Evaluation Trace (|Q| = 3, NFA Q2.c: 2^3 = 8 Subsets):
+                </span>
+                <div className="overflow-x-auto rounded-xl border border-slate-800">
+                  <table className="w-full text-left text-xs font-mono">
+                    <thead className={isProjectorMode ? 'bg-slate-200 text-slate-950 font-bold' : 'bg-slate-900 text-slate-300 font-bold'}>
+                      <tr>
+                        <th className="p-2.5">DFA State</th>
+                        <th className="p-2.5">Subset</th>
+                        <th className="p-2.5">Input 0</th>
+                        <th className="p-2.5">Input 1</th>
+                        <th className="p-2.5">Standard Powerset Method</th>
+                        <th className="p-2.5">Lazy Evaluation Method</th>
+                      </tr>
+                    </thead>
+                    <tbody className={`divide-y ${isProjectorMode ? 'divide-slate-300' : 'divide-slate-800'}`}>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-sky-400">&rarr; A</td>
+                        <td className="p-2.5 text-slate-300">{"{q0}"}</td>
+                        <td className="p-2.5 text-indigo-300">B</td>
+                        <td className="p-2.5 text-indigo-300">C</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 1)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 1)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-slate-300">B</td>
+                        <td className="p-2.5 text-slate-300">{"{q0, q1}"}</td>
+                        <td className="p-2.5 text-indigo-300">*D</td>
+                        <td className="p-2.5 text-indigo-300">*E</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 2)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 2)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-slate-300">C</td>
+                        <td className="p-2.5 text-slate-300">{"{q1}"}</td>
+                        <td className="p-2.5 text-indigo-300">*F</td>
+                        <td className="p-2.5 text-indigo-300">*F</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 3)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 3)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-emerald-400">*D</td>
+                        <td className="p-2.5 text-slate-300">{"{q0, q1, q2}"}</td>
+                        <td className="p-2.5 text-indigo-300">*D</td>
+                        <td className="p-2.5 text-indigo-300">*E</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 4)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 4)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-emerald-400">*E</td>
+                        <td className="p-2.5 text-slate-300">{"{q1, q2}"}</td>
+                        <td className="p-2.5 text-indigo-300">*F</td>
+                        <td className="p-2.5 text-indigo-300">*F</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 5)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 5)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-bold text-emerald-400">*F</td>
+                        <td className="p-2.5 text-slate-300">{"{q2}"}</td>
+                        <td className="p-2.5 text-indigo-300 font-semibold text-rose-400">&phi; (Dead)</td>
+                        <td className="p-2.5 text-indigo-300">*F</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 6)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 6)</td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/40">
+                        <td className="p-2.5 font-semibold text-rose-400">&phi;</td>
+                        <td className="p-2.5 text-slate-300">&empty;</td>
+                        <td className="p-2.5 text-rose-400">&phi;</td>
+                        <td className="p-2.5 text-rose-400">&phi;</td>
+                        <td className="p-2.5 text-slate-400">Evaluated (Row 7)</td>
+                        <td className="p-2.5 font-bold text-emerald-400">Evaluated (Step 7)</td>
+                      </tr>
+                      <tr className="bg-rose-500/10 hover:bg-rose-500/20">
+                        <td className="p-2.5 font-bold text-rose-400">&mdash;</td>
+                        <td className="p-2.5 text-rose-300 font-bold">{"{q0, q2}"}</td>
+                        <td className="p-2.5 text-slate-500">&mdash;</td>
+                        <td className="p-2.5 text-slate-500">&mdash;</td>
+                        <td className="p-2.5 text-rose-400 font-bold">Evaluated (Row 8 - Wasted!)</td>
+                        <td className="p-2.5 font-extrabold text-emerald-400 bg-emerald-500/10">SKIPPED (Unreachable!)</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentSlide.interactiveType === 'nfaToDfaTables' && (
+            <div className={`border rounded-2xl p-6 space-y-6 shadow-2xl ${
+              isProjectorMode
+                ? 'bg-indigo-50 border-2 border-indigo-600 text-slate-950'
+                : 'bg-slate-950 border-indigo-500/40 text-slate-100'
+            }`}>
+              <div className="flex items-center justify-between border-b pb-3 border-indigo-500/20">
+                <h3 className="text-lg font-black text-indigo-400 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-500" />
+                  NFA &amp; Converted DFA Transition Tables (10CS56 Q1.c)
+                </h3>
+                <span className="text-xs font-mono font-bold bg-indigo-600/20 text-indigo-300 px-3 py-1 rounded-full border border-indigo-500/30">
+                  Exam Solution Matrix
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Given NFA Transition Table */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                      1. Given NFA Transition Table (5 States)
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">Alphabet &Sigma; = {"{0, 1}"}</span>
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs sm:text-sm font-sans">
+                      <thead className={isProjectorMode ? 'bg-amber-950 text-white' : 'bg-slate-900 text-amber-300 font-black'}>
+                        <tr>
+                          <th className="p-3">NFA State</th>
+                          <th className="p-3">Input 0</th>
+                          <th className="p-3">Input 1</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y ${isProjectorMode ? 'divide-slate-300 text-slate-900 font-semibold' : 'divide-slate-800 text-slate-200 font-medium'}`}>
+                        <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950'}>
+                          <td className="p-3 font-bold text-amber-400">&rarr; p (Start)</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{p, q}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{p}"}</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                          <td className="p-3 font-bold text-slate-300">q</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{r, s}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{t}"}</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950'}>
+                          <td className="p-3 font-bold text-slate-300">r</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{p, r}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">{"{t}"}</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                          <td className="p-3 font-bold text-emerald-400">*s (Final)</td>
+                          <td className="p-3 font-mono text-rose-400">&phi;</td>
+                          <td className="p-3 font-mono text-rose-400">&phi;</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950'}>
+                          <td className="p-3 font-bold text-emerald-400">*t (Final)</td>
+                          <td className="p-3 font-mono text-rose-400">&phi;</td>
+                          <td className="p-3 font-mono text-rose-400">&phi;</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Converted DFA Transition Table */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      2. Converted DFA Transition Table
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400">Subset Construction</span>
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs sm:text-sm font-sans">
+                      <thead className={isProjectorMode ? 'bg-emerald-950 text-white' : 'bg-slate-900 text-emerald-300 font-black'}>
+                        <tr>
+                          <th className="p-3">DFA State</th>
+                          <th className="p-3">NFA Subset</th>
+                          <th className="p-3">Input 0</th>
+                          <th className="p-3">Input 1</th>
+                          <th className="p-3">Final?</th>
+                        </tr>
+                      </thead>
+                      <tbody className={`divide-y ${isProjectorMode ? 'divide-slate-300 text-slate-900 font-semibold' : 'divide-slate-800 text-slate-200 font-medium'}`}>
+                        <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950'}>
+                          <td className="p-3 font-bold text-sky-400">&rarr; A</td>
+                          <td className="p-3 font-mono text-slate-300">{"{p}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">B</td>
+                          <td className="p-3 font-mono text-indigo-300">A</td>
+                          <td className="p-3 font-mono text-slate-400">No</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                          <td className="p-3 font-bold text-slate-300">B</td>
+                          <td className="p-3 font-mono text-slate-300">{"{p, q}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">*C</td>
+                          <td className="p-3 font-mono text-indigo-300">*D</td>
+                          <td className="p-3 font-mono text-slate-400">No</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-white' : 'bg-slate-950'}>
+                          <td className="p-3 font-bold text-emerald-400">*C</td>
+                          <td className="p-3 font-mono text-slate-300">{"{p, q, r, s}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">*C</td>
+                          <td className="p-3 font-mono text-indigo-300">*D</td>
+                          <td className="p-3 font-mono font-bold text-emerald-400">YES (s)</td>
+                        </tr>
+                        <tr className={isProjectorMode ? 'bg-slate-50' : 'bg-slate-900/40'}>
+                          <td className="p-3 font-bold text-emerald-400">*D</td>
+                          <td className="p-3 font-mono text-slate-300">{"{p, t}"}</td>
+                          <td className="p-3 font-mono text-indigo-300">B</td>
+                          <td className="p-3 font-mono text-indigo-300">A</td>
+                          <td className="p-3 font-mono font-bold text-emerald-400">YES (t)</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* ASCII Transition Diagram Banner */}
+              <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4 space-y-2">
+                <span className="text-xs font-mono font-black text-indigo-400 uppercase tracking-wider block">
+                  Converted DFA Transition Diagram Flow:
+                </span>
+                <pre className="font-mono text-xs text-indigo-200 overflow-x-auto leading-relaxed">
+{`  ──► (A) ────────── 0 ──────────► (B) ────────── 0 ──────────► ((C)) ⟲ 0
+       ▲                            │                            │
+       │                            1                            1
+       1                            ▼                            ▼
+       └──────────── 1 ────────── ((D)) ◄──────── 0 ─────────────┘`}
+                </pre>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom Slide Navigation Bar */}
